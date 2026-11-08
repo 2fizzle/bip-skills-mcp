@@ -6,7 +6,8 @@
 import { McpServer, ResourceTemplate, ProtocolError, ProtocolErrorCode } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import { createMcpExpressApp } from "@modelcontextprotocol/express";
+import { hostHeaderValidation, localhostHostValidation } from "@modelcontextprotocol/express";
+import express, { type RequestHandler } from "express";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { timingSafeEqual } from "node:crypto";
 import * as z from "zod/v4";
@@ -200,11 +201,20 @@ if (process.env.TRANSPORT === "http") {
   const allowedHosts = (process.env.ALLOWED_HOSTS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   const authToken = process.env.MCP_AUTH_TOKEN;
 
-  const app = createMcpExpressApp(host === "127.0.0.1" || host === "localhost" ? {} : { host, ...(allowedHosts.length ? { allowedHosts } : {}) });
+  const isLocal = host === "127.0.0.1" || host === "localhost" || host === "::1";
+  // DNS-rebinding protection on /mcp only, so platform health probes on /health are never blocked
+  const hostCheck: RequestHandler = isLocal
+    ? localhostHostValidation()
+    : allowedHosts.length
+      ? hostHeaderValidation(allowedHosts.map((h) => h.replace(/:\d+$/, "")))
+      : (_req, _res, next) => next();
+  if (!isLocal && !allowedHosts.length) console.error("warning: ALLOWED_HOSTS is not set; Host header is not checked");
+
+  const app = express();
   const nodeHandler = toNodeHandler(createMcpHandler(createServer));
 
   app.get("/health", (_req, res) => { res.json({ status: "ok", name: "bip-skills-mcp", version: VERSION }); });
-  app.all("/mcp", (req, res) => {
+  app.all("/mcp", hostCheck, express.json({ limit: "1mb" }), (req, res) => {
     if (authToken) {
       const header = req.headers.authorization ?? "";
       const given = header.startsWith("Bearer ") ? header.slice(7) : "";
