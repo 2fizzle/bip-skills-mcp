@@ -1,6 +1,6 @@
 {
   "name": "@2fizzle/bip-skills-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server that serves Agent Skills (SKILL.md folders) as tools and resources: list, read and browse bundled files. Ships with bip-xsl-hardening for Oracle BI Publisher XSL dashboards.",
   "mcpName": "io.github.2fizzle/bip-skills-mcp",
   "type": "module",
@@ -13,7 +13,7 @@
     "prepublishOnly": "npm run build && npm run smoke"
   },
   "keywords": ["mcp", "model-context-protocol", "agent-skills", "skills", "oracle", "bi-publisher", "xslt"],
-  "repository": { "type": "git", "url": "https://github.com/2fizzle/bip-skills-mcp.git" },
+  "repository": { "type": "git", "url": "git+https://github.com/2fizzle/bip-skills-mcp.git" },
   "license": "MIT",
   "engines": { "node": ">=20.3" },
   "dependencies": {

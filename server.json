@@ -4,12 +4,12 @@
   "title": "BIP Skills MCP",
   "description": "Serves Agent Skills folders (SKILL.md + bundled files) to any MCP client. Bundles bip-xsl-hardening.",
   "repository": { "url": "https://github.com/2fizzle/bip-skills-mcp", "source": "github" },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@2fizzle/bip-skills-mcp",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {

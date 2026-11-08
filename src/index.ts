@@ -11,7 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 const CHARACTER_LIMIT = 25_000;
 const MAX_FILE_BYTES = 2_000_000;
 const TEXT_EXT = new Set([
