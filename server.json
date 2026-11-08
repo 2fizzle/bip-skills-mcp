@@ -33,5 +33,11 @@
         }
       ]
     }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://bip-skills-mcp.onrender.com/mcp"
+    }
   ]
 }
