@@ -1,0 +1,62 @@
+{
+  "skill_name": "bip-xsl-hardening",
+  "evals": [
+    {
+      "id": 1,
+      "name": "locale-zero-bars",
+      "prompt": "I have a BI Publisher dashboard XSL that renders cycle-time bars in our Oracle Fusion HCM tenant. It works fine in the US tenant, but in the French tenant ALL bars come out as 0.0 min. The events are definitely there in the data. Here are the files:\n\n- XSL: evals/eval-1-locale-zero-bars/inputs/dashboard.xsl\n- French data extract: evals/eval-1-locale-zero-bars/inputs/data_french.xml\n\nPlease patch the XSL so the bars render correctly in any locale. Save the patched XSL to outputs/dashboard.xsl and a rendered preview to outputs/preview.html (you can use python with lxml to render it locally).",
+      "expected_output": "Patched XSL filters on PHASE_CODE (locale-independent) instead of PHASE_NAME.",
+      "files": [
+        "evals/eval-1-locale-zero-bars/inputs/dashboard.xsl",
+        "evals/eval-1-locale-zero-bars/inputs/data_french.xml"
+      ],
+      "assertions": [
+        "Patched XSL file exists",
+        "Rendered preview.html exists",
+        "Patched XSL compiles with lxml (valid XSLT)",
+        "XSL filters on locale-independent PHASE_CODE (not English PHASE_NAME literals)",
+        "Preview shows Draft/Brouillon bar with value >= 10 min",
+        "Preview shows Approval/Approbation bar with value >= 5 min",
+        "Preview shows Posting/Mise-en-forme bar with value >= 3 min"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "xslt1-date-diff",
+      "prompt": "I'm building a BI Publisher report (xdo11g) that needs to compute the average minutes between CREATION_DATE and APPROVED_DATE per requisition. I tried using EXSLT date:seconds and date:diff, but BI Publisher throws \"Undefined function: date:diff\" at runtime — only core XSLT 1.0 is available. Here are the files:\n\n- XSL (broken, has TODO): evals/eval-2-xslt1-date-diff/inputs/dashboard.xsl\n- Data: evals/eval-2-xslt1-date-diff/inputs/data.xml\n\nPlease replace the broken EXSLT logic with pure XSLT 1.0 date arithmetic that works in BI Publisher. Save the patched XSL to outputs/dashboard.xsl and the rendered HTML preview to outputs/preview.html.",
+      "expected_output": "Patched XSL uses pure XSLT 1.0 date arithmetic (no EXSLT date: namespace); preview shows 15.0 min.",
+      "files": [
+        "evals/eval-2-xslt1-date-diff/inputs/dashboard.xsl",
+        "evals/eval-2-xslt1-date-diff/inputs/data.xml"
+      ],
+      "assertions": [
+        "Patched XSL file exists",
+        "Rendered preview.html exists",
+        "Patched XSL compiles with lxml (valid XSLT)",
+        "XSL does not declare EXSLT date namespace",
+        "XSL does not call date:* functions",
+        "Preview shows average = 15.0 min",
+        "Preview does not contain unresolved '??' placeholder"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "adaptive-fallback",
+      "prompt": "Our Oracle Fusion HCM tenant has a BI Publisher dashboard panel for \"Requisition Lifecycle\" that goes empty for one of our datasets. The XSL was written assuming we always have G_14 PHASE_COMPLETION events on the requisition side, but in this dataset there are NO such events — only G_1 reqs with CREATION_DATE / APPROVED_DATE / OPEN_DATE date milestones and a PHASE_NAME_CURRENT label. The panel shows an empty-state instead of something useful.\n\nHere are the files:\n\n- XSL (single-branch, hits empty-state on this data): evals/eval-3-adaptive-fallback/inputs/dashboard.xsl\n- Data (no G_14 events, but has dates and current phase labels): evals/eval-3-adaptive-fallback/inputs/data.xml\n\nPlease patch the XSL so that when the primary signal is missing, the panel falls back to render whatever signal IS available — ideally cycle-time bars computed from the date milestones (Create→Approve, Approve→Open) AND/OR a phase-mix breakdown from PHASE_NAME_CURRENT. Save the patched XSL to outputs/dashboard.xsl and the rendered preview to outputs/preview.html.",
+      "expected_output": "Patched XSL preserves the primary Muenchian branch and adds an adaptive fallback; preview is no longer empty.",
+      "files": [
+        "evals/eval-3-adaptive-fallback/inputs/dashboard.xsl",
+        "evals/eval-3-adaptive-fallback/inputs/data.xml"
+      ],
+      "assertions": [
+        "Patched XSL file exists",
+        "Rendered preview.html exists",
+        "Patched XSL compiles with lxml (valid XSLT)",
+        "Primary Muenchian branch preserved (reqPhase key + PHASE_COMPLETION predicate)",
+        "XSL contains an adaptive fallback branch (date milestones or PHASE_NAME_CURRENT)",
+        "Rendered preview is not the empty 'No data' state",
+        "Rendered preview contains at least one non-zero value bar"
+      ]
+    }
+  ]
+}

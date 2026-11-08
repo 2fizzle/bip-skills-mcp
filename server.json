@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.2fizzle/bip-skills-mcp",
+  "title": "BIP Skills MCP",
+  "description": "Serves Agent Skills folders (SKILL.md + bundled files) to any MCP client. Bundles bip-xsl-hardening.",
+  "repository": { "url": "https://github.com/2fizzle/bip-skills-mcp", "source": "github" },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@2fizzle/bip-skills-mcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "SKILLS_DIR",
+          "description": "Optional. Extra skills folder(s), separated by ';' on Windows or ':' elsewhere. A skill found there overrides a bundled skill of the same name.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "filepath"
+        },
+        {
+          "name": "SKILLS_NO_BUNDLED",
+          "description": "Optional. Set to 1 to hide the bundled skills and serve only SKILLS_DIR.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
