@@ -5,13 +5,17 @@
  */
 import { McpServer, ResourceTemplate, ProtocolError, ProtocolErrorCode } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import { createMcpHandler } from "@modelcontextprotocol/server";
+import { createMcpExpressApp } from "@modelcontextprotocol/express";
+import { toNodeHandler } from "@modelcontextprotocol/node";
+import { timingSafeEqual } from "node:crypto";
 import * as z from "zod/v4";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
-const VERSION = "1.0.1";
+const VERSION = "1.1.0";
 const CHARACTER_LIMIT = 25_000;
 const MAX_FILE_BYTES = 2_000_000;
 const TEXT_EXT = new Set([
@@ -183,5 +187,39 @@ function createServer(): McpServer {
   return server;
 }
 
-serveStdio(createServer);
-console.error(`bip-skills-mcp ${VERSION} running on stdio`);
+// ---- Transport selection: stdio by default, Streamable HTTP when TRANSPORT=http ----
+
+function tokenMatches(given: string, expected: string): boolean {
+  const a = Buffer.from(given), b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+if (process.env.TRANSPORT === "http") {
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? (process.env.PORT ? "0.0.0.0" : "127.0.0.1");
+  const allowedHosts = (process.env.ALLOWED_HOSTS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const authToken = process.env.MCP_AUTH_TOKEN;
+
+  const app = createMcpExpressApp(host === "127.0.0.1" || host === "localhost" ? {} : { host, ...(allowedHosts.length ? { allowedHosts } : {}) });
+  const nodeHandler = toNodeHandler(createMcpHandler(createServer));
+
+  app.get("/health", (_req, res) => { res.json({ status: "ok", name: "bip-skills-mcp", version: VERSION }); });
+  app.all("/mcp", (req, res) => {
+    if (authToken) {
+      const header = req.headers.authorization ?? "";
+      const given = header.startsWith("Bearer ") ? header.slice(7) : "";
+      if (!tokenMatches(given, authToken)) {
+        res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "unauthorized", message: "Send Authorization: Bearer <MCP_AUTH_TOKEN>" });
+        return;
+      }
+    }
+    void nodeHandler(req, res, req.body);
+  });
+
+  app.listen(port, host, () => {
+    console.error(`bip-skills-mcp ${VERSION} listening on http://${host}:${port}/mcp${authToken ? " (bearer token required)" : " (no auth)"}`);
+  });
+} else {
+  serveStdio(createServer);
+  console.error(`bip-skills-mcp ${VERSION} running on stdio`);
+}

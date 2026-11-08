@@ -36,12 +36,44 @@ Each skill is also exposed as a resource: `skill://<name>/SKILL.md`. All tools a
 
 Requires Node.js 20.3+.
 
+## Remote use (Streamable HTTP)
+
+Set `TRANSPORT=http` to serve MCP over HTTP at `/mcp` (health check at `/health`).
+
+| Variable | Default | Effect |
+|---|---|---|
+| `TRANSPORT` | `stdio` | `http` turns on the HTTP server. |
+| `PORT` | `3000` | Listening port. |
+| `HOST` | `127.0.0.1`, or `0.0.0.0` when `PORT` is set by the host | Bind address. |
+| `ALLOWED_HOSTS` | — | Comma-separated public host names accepted in the `Host` header when binding `0.0.0.0` (DNS-rebinding protection). |
+| `MCP_AUTH_TOKEN` | — | If set, every `/mcp` request must send `Authorization: Bearer <token>`. Leave unset only if the served skills are public. |
+
+Run locally:
+
+```bash
+TRANSPORT=http npx -y @2fizzle/bip-skills-mcp
+# → http://127.0.0.1:3000/mcp
+```
+
+### Deploy
+
+- **Render**: New → Blueprint → this repository (uses `render.yaml`). Set `MCP_AUTH_TOKEN` in the dashboard if you want a token, and change `ALLOWED_HOSTS` to your service host name.
+- **Any Docker host** (Fly.io, Railway, Cloud Run…): `docker build -t bip-skills-mcp .` then run with `-p 3000:3000 -e ALLOWED_HOSTS=your.host`.
+
+A hosted instance only serves the bundled skills: `SKILLS_DIR` points to a local folder and has no effect there.
+
+### Connect
+
+- **Claude (web, desktop, mobile)**: Settings → Connectors → Add custom connector → `https://<your-host>/mcp`. Custom connectors support no-auth or OAuth servers, not static bearer tokens — leave `MCP_AUTH_TOKEN` unset for this route.
+- **Claude Code**: `claude mcp add --transport http bip-skills https://<your-host>/mcp --header "Authorization: Bearer <token>"`
+
 ## Develop
 
 ```bash
 npm install
 npm run build
-npm run smoke   # starts the server and checks every tool
+npm run smoke        # stdio: starts the server and checks every tool
+npm run smoke:http   # HTTP: checks /health, bearer auth and every tool
 ```
 
 ## License

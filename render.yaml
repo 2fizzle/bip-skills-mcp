@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: bip-skills-mcp
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: TRANSPORT
+        value: http
+      - key: ALLOWED_HOSTS
+        value: bip-skills-mcp.onrender.com
+      - key: MCP_AUTH_TOKEN
+        sync: false
