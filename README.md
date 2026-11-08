@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # bip-skills-mcp
 
 MCP server that serves **Agent Skills** — folders containing a `SKILL.md` plus optional `references/`, `scripts/`, `assets/` — to any MCP client (Claude Desktop, Claude Code, Cursor, VS Code…).
@@ -48,6 +47,3 @@ npm run smoke   # starts the server and checks every tool
 ## License
 
 MIT
-=======
-# bip-skills-mcp
->>>>>>> 1d645f95a8202b30ac856cb8d8f77e1ec9e342c9
